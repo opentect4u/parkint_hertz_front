@@ -275,9 +275,40 @@ export default function ShiftWiseReportScreen({ navigation }) {
     await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
     await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
 
-    await BluetoothEscposPrinter.printText("Name.      Count        Paid\n", { align: "center" });
+    // await BluetoothEscposPrinter.printText("Name.      Count        Paid\n", { align: "center" });
+    await BluetoothEscposPrinter.printColumn(
+    [10, 10, 10],
+    [
+      BluetoothEscposPrinter.ALIGN.LEFT,
+      BluetoothEscposPrinter.ALIGN.CENTER,
+      BluetoothEscposPrinter.ALIGN.RIGHT,
+    ],
+    //@ts-ignore
+    ["Name.", "Count", 'Paid'],
+    {},
+  )
+
     await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
-    await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+    // await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+    await Promise.all(
+    useOperatorData.map(async (item) => {
+    await BluetoothEscposPrinter.printColumn(
+    [10, 10, 10],
+    [
+    BluetoothEscposPrinter.ALIGN.LEFT,
+    BluetoothEscposPrinter.ALIGN.CENTER,
+    BluetoothEscposPrinter.ALIGN.RIGHT,
+    ],
+    [
+    item.vehicleType.toString(),
+    item.tot_vehi.toString(),
+    (Number(item.tot_amt) + Number(item.other_charges || 0)).toFixed(2),
+    ],
+    {}
+    );
+    })
+    );
+
     await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
     await BluetoothEscposPrinter.printText(`NET: ${totalAmount + other_charges}\n`, { align: "left" });
     await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
@@ -287,6 +318,15 @@ export default function ShiftWiseReportScreen({ navigation }) {
     // }
 
     await BluetoothEscposPrinter.printText(`${payloadFooter}\n`, { align: "center" });
+    // await BluetoothEscposPrinter.printColumn(
+    //   [30],
+    //   [
+    //     BluetoothEscposPrinter.ALIGN.CENTER,
+    //   ],
+    //   //@ts-ignore
+    //   [payloadFooter],
+    //   {},
+    // )
     await BluetoothEscposPrinter.printText("\r\n", {})
     } catch (e) {
     // alert(e.message || "ERROR")

@@ -107,7 +107,7 @@ export default function DetailedReportScreen({ navigation }) {
 
     setgetDetailedReport(rep_data?.data?.msg)
 
-    console.log(rep_data?.data?.msg, 'jjjjjjjjjjjjjjjjjjjjj');
+    // console.log(rep_data?.data?.msg, 'jjjjjjjjjjjjjjjjjjjjj');
     
 
   };
@@ -277,14 +277,87 @@ export default function DetailedReportScreen({ navigation }) {
       await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
 
       if (generalSettings.gst_flag === "Y") {
-        await BluetoothEscposPrinter.printText("Rec.No. Veh.No. InTime Paid\n", { align: "center" });
-        }
+        // await BluetoothEscposPrinter.printText("Rec.No. Veh.No. InTime Paid\n", { align: "center" });
+
+        await BluetoothEscposPrinter.printColumn(
+          [7, 8, 7, 6],
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          //@ts-ignore
+          ["Rec.No", "Veh.No", 'InTime', 'Paid'],
+          {},
+        )
+
+        
+      }
 
       if (generalSettings.gst_flag === "N") {
-      await BluetoothEscposPrinter.printText("Rec.No. Veh.No. InTime Adv Paid\n", { align: "center" });
+      // await BluetoothEscposPrinter.printText("Rec.No. Veh.No. InTime Adv Paid\n", { align: "center" });
+      await BluetoothEscposPrinter.printColumn(
+          [6, 6, 6, 6, 5],
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.CENTER,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          //@ts-ignore
+          ["Rec.No", "Veh.No", 'InTime', 'Adv', 'Paid'],
+          {},
+        )
       }
       await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
-      await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+      // await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+
+      await Promise.all(
+  getDetailedReport.map(async (item) => {
+    const dateTime = dateTimefixedStringm(item.date_time_in.toString());
+
+    if (generalSettings.gst_flag === "Y") {
+      await BluetoothEscposPrinter.printColumn(
+        [7, 8, 7, 6],
+        [
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+        ],
+        [
+          item.receipt_no.toString().slice(-5),
+          item.vehicle_no.toString().slice(-5),
+          dateTime,
+          (Number(item.paid_amt) + Number(item.other_charges || 0)).toFixed(2),
+        ],
+        {}
+      );
+    } else {
+      await BluetoothEscposPrinter.printColumn(
+        [6, 6, 6, 6, 5],
+        [
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.CENTER,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+        ],
+        [
+          item.receipt_no.toString().slice(-5),
+          item.vehicle_no.toString().slice(-5),
+          dateTime,
+          (isNaN(item?.advance_amt) ? 0 : Number(item.advance_amt)).toFixed(2),
+          Number(item.paid_amt).toFixed(2),
+        ],
+        {}
+      );
+    }
+  })
+);
+
       await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
 
       if (generalSettings.pay_mode_flag == "Y") {
@@ -304,6 +377,16 @@ export default function DetailedReportScreen({ navigation }) {
       
 
       await BluetoothEscposPrinter.printText(`${payloadFooter}\n`, { align: "center" });
+      // await BluetoothEscposPrinter.printColumn(
+      //   [30],
+      //   [
+      //     BluetoothEscposPrinter.ALIGN.CENTER,
+      //   ],
+      //   //@ts-ignore
+      //   [payloadFooter],
+      //   {},
+      // )
+
       await BluetoothEscposPrinter.printText("\r\n", {})
       } catch (e) {
       // alert(e.message || "ERROR")

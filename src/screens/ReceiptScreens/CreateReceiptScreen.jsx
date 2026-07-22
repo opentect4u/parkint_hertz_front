@@ -436,32 +436,64 @@ const CreateReceiptScreen = ({ navigation, route }) => {
       //   await BluetoothEscposPrinter.printText(`GST No.: ${gstList.gst_number}\n`, { align: "center" });
       // }
   
+      // await BluetoothEscposPrinter.printColumn(
+      //   [30],
+      //   [BluetoothEscposPrinter.ALIGN.LEFT],
+      //   [`RECEIPT NO : ${receipt_number +'.'}${loginData?.user?.userdata?.msg[0].receipt_no}`],
+      //   {}
+      // );
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`RECEIPT NO : ${receipt_number +'.'}${loginData?.user?.userdata?.msg[0].receipt_no}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      //@ts-ignore
+      ["RECEIPT NO", ":", `${receipt_number +'.'}${loginData?.user?.userdata?.msg[0].receipt_no}`],
+      {},
+      )
+      
+      // await BluetoothEscposPrinter.printColumn(
+      //   [30],
+      //   [BluetoothEscposPrinter.ALIGN.LEFT],
+      //   [`VEHICLE TYPE : ${type}`],
+      //   {}
+      // );
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`VEHICLE TYPE : ${type}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      ["VEHICLE TYPE", ":", `${type}`],
+      {},
+      )
+      
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`VEHICLE NO : ${vehicleNumber}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      ["VEHICLE NO", ":", `${vehicleNumber}`],
+      {},
+      )
+
+      
 
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`YS SERVICE CHARGES : ${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}`],
-        // [`YS Service Charges : ${vehicle_rate}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      ["YS SERVICE CHARGES", ":", `${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}`],
+      {},
+      )
 
       
 
@@ -478,6 +510,15 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
       await BluetoothEscposPrinter.printText(`PTU: SHIFT-${currentShift}:${loginData.user.userdata.msg[0].operator_name}\n`, { align: "center" });
 
+      // await BluetoothEscposPrinter.printColumn(
+      //   [30],
+      //   [
+      //     BluetoothEscposPrinter.ALIGN.CENTER,
+      //   ],
+      //   //@ts-ignore
+      //   [payloadFooter],
+      //   {},
+      // )
       if(receiptSettings?.IN_on_off == "Y"){
       await BluetoothEscposPrinter.printText(`${payloadFooter}\n`, { align: "center" });
       }

@@ -257,15 +257,77 @@ console.log(formattedDateFrom, formattedDateTo, loginData.user.userdata.msg[0].i
     
 
     if (generalSettings.gst_flag === "Y") {
-      await BluetoothEscposPrinter.printText("Name.      Count      Paid\n", { align: "center" });
+      // await BluetoothEscposPrinter.printText("Name.      Count      Paid\n", { align: "center" });
+      await BluetoothEscposPrinter.printColumn(
+        [10, 10, 10],
+        [
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.CENTER,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+        ],
+        //@ts-ignore
+        ["Veh.", "Count", 'Paid'],
+        {},
+      )
       }
 
     if (generalSettings.gst_flag === "N") {
-      await BluetoothEscposPrinter.printText("Name.   Count   Advance   Paid\n", { align: "center" });
+      // await BluetoothEscposPrinter.printText("Name.   Count   Advance   Paid\n", { align: "center" });
+      await BluetoothEscposPrinter.printColumn(
+        [8, 5, 8, 8],
+        [
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.CENTER,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+        ],
+        //@ts-ignore
+        ["Name.", "Count", "Adv", 'Paid'],
+        {},
+      )
     }
 
     await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
-    await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+    // await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+
+    await Promise.all(
+  operatorwiseReports.map(async (item) => {
+    if (generalSettings.gst_flag === "Y") {
+      await BluetoothEscposPrinter.printColumn(
+        [10, 10, 10],
+        [
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.CENTER,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+        ],
+        [
+          item.opratorName.toString(),
+          item.tot_vehi.toString(),
+          (Number(item.tot_amt) + Number(item.other_charges)).toFixed(2),
+        ],
+        {}
+      );
+    } else {
+      await BluetoothEscposPrinter.printColumn(
+        [8, 5, 8, 8],
+        [
+          BluetoothEscposPrinter.ALIGN.LEFT,
+          BluetoothEscposPrinter.ALIGN.CENTER,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+          BluetoothEscposPrinter.ALIGN.RIGHT,
+        ],
+        [
+          item.opratorName.toString(),
+          item.tot_vehi.toString(),
+          (isNaN(item?.advance_amt) ? 0 : Number(item.advance_amt)).toFixed(2),
+          Number(item.tot_amt).toFixed(2),
+        ],
+        {}
+      );
+    }
+  })
+);
+
     await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
 
     if (generalSettings.gst_flag === "Y") {
@@ -292,6 +354,16 @@ console.log(formattedDateFrom, formattedDateTo, loginData.user.userdata.msg[0].i
     // await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
 
     await BluetoothEscposPrinter.printText(`${payloadFooter}\n`, { align: "center" });
+    // await BluetoothEscposPrinter.printColumn(
+    //   [30],
+    //   [
+    //     BluetoothEscposPrinter.ALIGN.CENTER,
+    //   ],
+    //   //@ts-ignore
+    //   [payloadFooter],
+    //   {},
+    // )
+
     await BluetoothEscposPrinter.printText("\r\n", {})
     } catch (e) {
     // alert(e.message || "ERROR")

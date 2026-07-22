@@ -256,9 +256,27 @@ const CreateOutpassScreen = ({ route, navigation }) => {
           }
 
           
-          // await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
+          await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
 
-          await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+          // await BluetoothEscposPrinter.printText(`${payloadBody}`, { align: "left" });
+          await Promise.all(
+            data.map(async (props) => {
+              await BluetoothEscposPrinter.printColumn(
+                [12, 1, 16],
+                [
+                  BluetoothEscposPrinter.ALIGN.LEFT,
+                  BluetoothEscposPrinter.ALIGN.CENTER,
+                  BluetoothEscposPrinter.ALIGN.RIGHT,
+                ],
+                [
+                  props?.label?.toString() || "",
+                  ":",
+                  props?.value?.toString() || "",
+                ],
+                {}
+              );
+            })
+          );
 
           if (generalSettings.pay_mode_flag == "Y") {
             await BluetoothEscposPrinter.printText(`${getPayMode == "U" ? `Payment Mode : UPI\n` : "Payment Mode : Cash\n"}`, { align: "left" });
