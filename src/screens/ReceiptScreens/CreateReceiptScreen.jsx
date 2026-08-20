@@ -91,6 +91,8 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
   const [gstSettings, setGstSettings] = useState([]);
   const [printBtnActive, setPrintBtnActive] = useState(() => true);
+  // Keeps the completed receipt data available when the paper did not print.
+  const [lastVehiclePrintData, setLastVehiclePrintData] = useState(null);
 
 
   const getCurrentShift = (shifts) => {
@@ -233,7 +235,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
 
 
-  const handleCreateReceipt = async () => {
+  const handleCreateReceipt = async (isLastVehiclePrint = false) => {
     setPrintBtnActive(false)
     setLoading(true);
 
@@ -244,16 +246,29 @@ const CreateReceiptScreen = ({ navigation, route }) => {
     // let advanceAmount = "";
     let qrcode = "";
     let gstAmount;
-    let gstPrice = [];
+    let gstPrice = isLastVehiclePrint ? lastVehiclePrintData?.gstPrice : [];
+    const vehicleNumberToPrint = isLastVehiclePrint
+      ? lastVehiclePrintData?.vehicleNumber
+      : vehicleNumber;
+    const printTime = isLastVehiclePrint
+      ? new Date(lastVehiclePrintData?.printTime)
+      : currentTime;
     
-    if (loading == true) {
+    if (!isLastVehiclePrint && loading == true) {
       return;
     }
 
-    
-    
+    if (isLastVehiclePrint && !lastVehiclePrintData) {
+      setLoading(false);
+      setPrintBtnActive(true);
+      return ToastAndroid.showWithGravity(
+        "No previous vehicle receipt is available to print.",
+        ToastAndroid.SHORT,
+        ToastAndroid.CENTER,
+      );
+    }
 
-    if (!vehicleNumber) {
+    if (!isLastVehiclePrint && !vehicleNumber) {
       setLoading(false);
       // setPrintBtnActive(true)
       return ToastAndroid.showWithGravity(
@@ -264,15 +279,14 @@ const CreateReceiptScreen = ({ navigation, route }) => {
     }
 
 
+    let carindata = isLastVehiclePrint ? lastVehiclePrintData.carindata : "";
+
+    if (!isLastVehiclePrint) {
     // let vehicleRate = parseInt(fixedVehicleRateObject.vehicle_rate);
     let vehicleRate = parseInt(fixedVehicleRateObject?.vehicle_rate);
-    
     let vehicleId = parseInt(id);
 
     await checkLocationEnabled();
-    
-    
-    let carindata = "";
 
     if (generalSettings.gst_flag == "Y") {
     gstPrice = useGstPriceCalculator(gstSettings[0], vehicleRate, generalSettings.gst_flag);
@@ -319,10 +333,19 @@ const CreateReceiptScreen = ({ navigation, route }) => {
     );
 
       }
+    }
 
       // console.log(carindata, 'carindatacarindatacarindatacarindata');
       
     if(carindata.status){
+      if (!isLastVehiclePrint) {
+        setLastVehiclePrintData({
+          carindata,
+          gstPrice,
+          vehicleNumber,
+          printTime: currentTime.toISOString(),
+        });
+      }
 
       // setLoading(false);
       // setPrintBtnActive(true)
@@ -427,7 +450,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
       await BluetoothEscposPrinter.printColumn(
         [30],
         [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`IN TIME : ${formatDateTime(currentTime)}`],
+        [`IN TIME : ${formatDateTime(printTime)}`],
         {}
       );
       await BluetoothEscposPrinter.printText("-------------------------------\n", { align: "center" });
@@ -478,7 +501,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         BluetoothEscposPrinter.ALIGN.CENTER,
         BluetoothEscposPrinter.ALIGN.RIGHT,
       ],
-      ["VEHICLE NO", ":", `${vehicleNumber}`],
+      ["VEHICLE NO", ":", `${vehicleNumberToPrint}`],
       {},
       )
 
@@ -531,12 +554,12 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
         
 
-        if(generalSettings?.redirection_flag == "Y"){
+        if(!isLastVehiclePrint && generalSettings?.redirection_flag == "Y"){
 
         navigation.navigate("ReceiptScreen");
         }
 
-        if(generalSettings?.redirection_flag == "N"){
+        if(!isLastVehiclePrint && generalSettings?.redirection_flag == "N"){
         setLoading(false);
 
         setVehicleNumber("");
@@ -646,13 +669,13 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         `[C]${payloadHeader}` +
         // `${GST_Header}` +
         
-        `[L]<font size='normal'>IN TIME : [R]${formatDateTime(currentTime)}</font>\n` +
+        `[L]<font size='normal'>IN TIME : [R]${formatDateTime(printTime)}</font>\n` +
         `[C]-------------------------------\n` +
         `[L]<font size='normal'>RECEIPT NO : [R] ${receipt_number +'.'}${loginData?.user?.userdata?.msg[0].receipt_no}</font>\n` +
 
 
         `[L]<font size='normal'>VEHICLE TYPE. : [R] ${type}</font>\n` +
-        `[L]<font size='normal'>VEHICLE NO : [R] ${vehicleNumber}</font>\n` +
+        `[L]<font size='normal'>VEHICLE NO : [R] ${vehicleNumberToPrint}</font>\n` +
         `[L]<font size='normal'>YS SERVICE CHARGES : [R] ${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}</font>\n\n` +
         
         
@@ -678,12 +701,12 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         //   navigation.navigate("ReceiptScreen_Bletooth");
         // }
 
-        if(generalSettings?.redirection_flag == "Y"){
+        if(!isLastVehiclePrint && generalSettings?.redirection_flag == "Y"){
 
         navigation.navigate("ReceiptScreen");
         }
 
-        if(generalSettings?.redirection_flag == "N"){
+        if(!isLastVehiclePrint && generalSettings?.redirection_flag == "N"){
         setLoading(false);
 
         setVehicleNumber("");
@@ -743,6 +766,8 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         // Use for Handheld Device End
 
     }
+    setLoading(false);
+    setPrintBtnActive(true);
 
   };
 
@@ -822,9 +847,9 @@ const CreateReceiptScreen = ({ navigation, route }) => {
          
           {/* ......... vehicle Number .......... */}
           <View style={{ marginTop: normalize(20) }}>
-            <Text style={styles.vehicle_text}>Vechicle Number</Text>
+            <Text style={styles.vehicle_text}>Vehicle Number</Text>
             <RoundedInputComponent
-              placeholder={"Enter Vechicle Number"}
+              placeholder={"Enter Vehicle Number"}
               value={vehicleNumber}
               // onChangeText={setVehicleNumber}
               onChangeText={handleChangeText}
@@ -904,6 +929,15 @@ const CreateReceiptScreen = ({ navigation, route }) => {
             /> */}
 
             {/* <Button title="Test Printer" onPress={printreciept} /> */}
+          </View>
+
+          <View style={{ marginTop: normalize(12), marginHorizontal: normalize(10) }}>
+            <CustomButton.GoButton
+              title={"Last Vehicle Print"}
+              disabled={!lastVehiclePrintData || loading}
+              onAction={() => handleCreateReceipt(true)}
+              style={{ flex: 1 }}
+            />
           </View>
         </View>
       </ScrollView>

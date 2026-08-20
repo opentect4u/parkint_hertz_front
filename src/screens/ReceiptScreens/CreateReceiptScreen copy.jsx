@@ -90,7 +90,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
   const [currentShift, setCurrentShift] = useState("");
 
   const [gstSettings, setGstSettings] = useState([]);
-  const [printBtnActive, setPrintBtnActive] = useState(true);
+  const [printBtnActive, setPrintBtnActive] = useState(() => true);
 
 
   const getCurrentShift = (shifts) => {
@@ -178,9 +178,6 @@ const CreateReceiptScreen = ({ navigation, route }) => {
     getVehicleRateFixedByVehicleId(dev_mod, id);
   }, [generalSettings]);
 
-  
-
-  
 
   // check Bluetooth configuration
   async function checkLocationEnabled() {
@@ -240,51 +237,6 @@ const CreateReceiptScreen = ({ navigation, route }) => {
     setPrintBtnActive(false)
     setLoading(true);
 
-    
-    
-
-    // 10072026 Utsab Roy
-    // try {
-    // const devices = await BluetoothManager.enableBluetooth();
-    // console.log("Paired devices:", devices);
-
-    // if (!devices || devices.length === 0) {
-    // setLoading(false);
-    // setPrintBtnActive(true);
-    // setVehicleNumber("");
-    // alert("No paired printer found. Please pair a printer first.")
-    // return ToastAndroid.showWithGravity(
-    // "No paired printer found. Please pair a printer first.",
-    // ToastAndroid.SHORT,
-    // ToastAndroid.CENTER
-    // );
-    // }
-
-    // // Convert string to object
-    // const printer = typeof devices[0] === "string" ? JSON.parse(devices[0]) : devices[0];
-    // console.log("Printer found:", printer.name, printer.address);
-
-    // // Connect printer
-    // const connected = await BluetoothManager.connect(printer.address);
-
-    // if(connected) {
-    // // Alert("Printer is connected. aaaaaaa")
-    // }
-
-    // // console.log("Connected successfully:", printer.name, 'checkkkkkkkkkk', connected,  await BluetoothManager.connect(printer.address));
-
-    // } catch (error) {
-    // setLoading(false);
-    // setPrintBtnActive(true)
-    // // console.log("Printer connection error:", error, 'checkkkkkkkkkk');
-    // setVehicleNumber("");
-    // return alert("Please try again.");
-
-    // // ToastAndroid.show(
-    // //   "Printer connection failed",
-    // //   ToastAndroid.SHORT
-    // // );
-    // }
 
     let GST_Yes_No = "";
     let GST_Header = "";
@@ -303,7 +255,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
     if (!vehicleNumber) {
       setLoading(false);
-      setPrintBtnActive(true)
+      // setPrintBtnActive(true)
       return ToastAndroid.showWithGravity(
         "Please add the vehicle number to continue.",
         ToastAndroid.SHORT,
@@ -368,18 +320,19 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
       }
 
-      console.log(carindata, 'carindatacarindatacarindatacarindata');
+      // console.log(carindata, 'carindatacarindatacarindatacarindata');
       
     if(carindata.status){
 
-      setLoading(false);
-      setPrintBtnActive(true)
+      // setLoading(false);
+      // setPrintBtnActive(true)
 
-      
+      // console.log('checkkkkkkkkkkkkkkkkkkkk', loginData?.user?.userdata?.msg[0], 'checkkkkkkkkkkkkkkkkkkkk');
+      // return;
       
 
       /// Utsab M H
-        if (getBlePermission && device_Type_Check == "M") {
+         if (getBlePermission && device_Type_Check == "M") {
 
         var payloadHeader = "";
         let payloadFooter = "";
@@ -483,32 +436,64 @@ const CreateReceiptScreen = ({ navigation, route }) => {
       //   await BluetoothEscposPrinter.printText(`GST No.: ${gstList.gst_number}\n`, { align: "center" });
       // }
   
+      // await BluetoothEscposPrinter.printColumn(
+      //   [30],
+      //   [BluetoothEscposPrinter.ALIGN.LEFT],
+      //   [`RECEIPT NO : ${receipt_number +'.'}${loginData?.user?.userdata?.msg[0].receipt_no}`],
+      //   {}
+      // );
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`RECEIPT NO : ${receipt_number}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      //@ts-ignore
+      ["RECEIPT NO", ":", `${receipt_number +'.'}${loginData?.user?.userdata?.msg[0].receipt_no}`],
+      {},
+      )
+      
+      // await BluetoothEscposPrinter.printColumn(
+      //   [30],
+      //   [BluetoothEscposPrinter.ALIGN.LEFT],
+      //   [`VEHICLE TYPE : ${type}`],
+      //   {}
+      // );
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`VEHICLE TYPE : ${type}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      ["VEHICLE TYPE", ":", `${type}`],
+      {},
+      )
+      
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`VEHICLE NO : ${vehicleNumber}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      ["VEHICLE NO", ":", `${vehicleNumber}`],
+      {},
+      )
+
+      
 
       await BluetoothEscposPrinter.printColumn(
-        [30],
-        [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`YS Service Charges : ${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}`],
-        // [`YS Service Charges : ${vehicle_rate}`],
-        {}
-      );
+      [19, 1, 9],
+      [
+        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
+        BluetoothEscposPrinter.ALIGN.RIGHT,
+      ],
+      ["YS SERVICE CHARGES", ":", `${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}`],
+      {},
+      )
 
       
 
@@ -525,6 +510,15 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
       await BluetoothEscposPrinter.printText(`PTU: SHIFT-${currentShift}:${loginData.user.userdata.msg[0].operator_name}\n`, { align: "center" });
 
+      // await BluetoothEscposPrinter.printColumn(
+      //   [30],
+      //   [
+      //     BluetoothEscposPrinter.ALIGN.CENTER,
+      //   ],
+      //   //@ts-ignore
+      //   [payloadFooter],
+      //   {},
+      // )
       if(receiptSettings?.IN_on_off == "Y"){
       await BluetoothEscposPrinter.printText(`${payloadFooter}\n`, { align: "center" });
       }
@@ -553,10 +547,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         // navigation.navigate("ReceiptScreen");
         } else if (device_Type_Check == "H") {
 
-        // if (generalSettings.gst_flag == "Y") {
-        // gstPrice = useGstPriceCalculator(gstSettings[0], vehicleRate, generalSettings.gst_flag);
-        // }
-        
+          
         ToastAndroid.showWithGravityAndOffset(
         "Receipt Created Successfully",
         ToastAndroid.LONG,
@@ -648,11 +639,8 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         }
 
         
-
-        // console.log("============zzzzzzzzzzzzzzz==================",payloadFooter);
         await ThermalPrinterModule.printBluetooth({
         payload:
-        // `[L]<font size='normal'>Hertz V1.0</font>\n` +
         `[C]<u><font size='tall'>RECEIPT</font></u>\n` +
         `[C]-------------------------------` +
         `[C]${payloadHeader}` +
@@ -662,29 +650,13 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         `[C]-------------------------------\n` +
         `[L]<font size='normal'>RECEIPT NO : [R] ${receipt_number +'.'}${loginData?.user?.userdata?.msg[0].receipt_no}</font>\n` +
 
-        // `${GST_Print}` +
-        
-        // `[L]<font size='normal'>MISC CHARGES : [R] ${gstList.other_charges}</font>\n` +
 
         `[L]<font size='normal'>VEHICLE TYPE. : [R] ${type}</font>\n` +
         `[L]<font size='normal'>VEHICLE NO : [R] ${vehicleNumber}</font>\n` +
         `[L]<font size='normal'>YS SERVICE CHARGES : [R] ${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}</font>\n\n` +
         
-        // `[L]<font size='normal'>ADVANCE : [R] ${vehicleAdv}</font>\n` +
-
-        // `${gstShow_pos}` +
-
-        // `${advanceAmount}` +
-        // `[L]<font size='normal'>IN TIME : [R]${dateTimefixedString(currentTime,)}</font>\n` +
-        // `${GST_Yes_No}` +
-
-        
-        // `[C]<u><font size='small'>${receiptNoObj}</font></u>\n` +
-
-        // `[C]<qrcode size='30'>${receiptNoObj.toString()}</qrcode>\n`+
         
         `${qrcode}` +
-        // `[C]${qrcode}\n` +
         `[C]------------------------------\n` +
         `[C]<font size='small'>PTU: SHIFT-${currentShift}:${loginData.user.userdata.msg[0].operator_name}</font>` +
         `${payloadFooter}\n`,
@@ -737,7 +709,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         );
 
         setLoading(false);
-        setPrintBtnActive(true);
+        // setPrintBtnActive(true);
         setVehicleNumber("");
         // setVehicleAdv(adv_value.toString() || "");
 
@@ -757,7 +729,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         );
 
         setLoading(false);
-        setPrintBtnActive(true)
+        // setPrintBtnActive(true)
         setVehicleNumber("");
         // setVehicleAdv(adv_value.toString() || "");
 
@@ -773,6 +745,21 @@ const CreateReceiptScreen = ({ navigation, route }) => {
     }
 
   };
+
+
+  useEffect(() => {
+    setPrintBtnActive(true)
+  }, [vehicleNumber])
+
+  const handleChangeText = (text) => {
+  const filtered = text.replace(/[^a-zA-Z0-9]/g, "");
+
+  if (text !== filtered) {
+    Alert.alert("Invalid Input", "Please Use Alphanumeric Value ");
+  }
+  setVehicleNumber(filtered);
+  };
+
 
   return (
     <View>
@@ -816,7 +803,6 @@ const CreateReceiptScreen = ({ navigation, route }) => {
               {icons.time}
               <View>
                 <Text style={styles.date_time}>Time</Text>
-
                 <Text style={styles.date_time_data}>
                   {currentTime.toLocaleTimeString()}
                 </Text>
@@ -824,15 +810,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* <View style={styles.container__Scanner}>
-<Text style={styles.numberText__Scanner}>Number: {receiptNoObj__}</Text>
-      <QRCode
-        value='12546' // Replace this with your number or data
-        size={200}
-        color="black"
-        backgroundColor="white"
-      />
-    </View> */}
+        
 
           {/* ......... vehicle type .......... */}
           <View style={{ marginTop: normalize(20) }}>
@@ -841,33 +819,15 @@ const CreateReceiptScreen = ({ navigation, route }) => {
           </View>
           {/* ..........receipt type ........... */}
 
-          {/* {fixedVehicleRateObject && (
-            <View style={{ marginTop: normalize(20) }}>
-              <Text style={{ ...styles.vehicle_text, color: "red" }}>
-                {" "}
-                {/* {dev_mod == "F" ? "" : advanceData && "Advance"}{" "} */}
-          {/*  {fixedVehicleRateObject && "Fixed"} Price is On{" "}
-              </Text>
-              <View
-                style={{
-                  marginLeft: normalize(10),
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}>
-                <Text style={{ ...styles.vehicle_text, color: "red" }}>
-                  Collect ₹{fixedVehicleRateObject.vehicle_rate} money from
-                  customer.
-                </Text>
-              </View>
-            </View>
-          )} */}
+         
           {/* ......... vehicle Number .......... */}
           <View style={{ marginTop: normalize(20) }}>
-            <Text style={styles.vehicle_text}>Vechicle Number</Text>
+            <Text style={styles.vehicle_text}>Vehicle Number</Text>
             <RoundedInputComponent
-              placeholder={"Enter Vechicle Number"}
+              placeholder={"Enter Vehicle Number"}
               value={vehicleNumber}
-              onChangeText={setVehicleNumber}
+              // onChangeText={setVehicleNumber}
+              onChangeText={handleChangeText}
             />
           </View>
 
@@ -884,7 +844,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
             
           )} */}
 
-        {generalSettings.pay_mode_flag == "Y" && (
+        {/* {generalSettings.pay_mode_flag == "Y" && (
         <View style={styles.radioButton_new}>
         {radioOptions.map(option => (
         <RadioButton
@@ -897,7 +857,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         />
         ))}
         </View>
-         )} 
+         )}  */}
 
           {/* ......... vehicle Advance Amount .......... */}
 
@@ -909,16 +869,18 @@ const CreateReceiptScreen = ({ navigation, route }) => {
               marginTop: normalize(10),
               marginHorizontal: normalize(10),
             }}>
-              {/* <Text>{JSON.stringify(printBtnActive, 2)} /// {JSON.stringify(!printBtnActive, 2)}</Text> */}
+
+              {/* <Text>{JSON.stringify(printBtnActive, 2)} // {JSON.stringify(!printBtnActive, 2)}</Text> */}
+
             {/* GOBACK action button */}
             <CustomButton.CancelButton
               title={"Cancel"}
               // disabled={!printBtnActive}
-              // disabled={true}
+              disabled={!printBtnActive}
               onAction={() => {
-                if(printBtnActive){
+                // if(printBtnActive){
                 navigation.goBack();
-                }
+                // }
               }}
               style={{ flex: 1, marginRight: normalize(8) }}
             />
@@ -928,6 +890,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
             {/* Print Receipt Action Button */}
             <CustomButton.GoButton
+            // disabled={!printBtnActive}
             disabled={!printBtnActive}
               title={"Print Receipt"}
               onAction={() => handleCreateReceipt()}
@@ -954,7 +917,7 @@ const styles = StyleSheet.create({
   container: {},
   date_time_container: {
     flexDirection: "row",
-    alignItems: "baseline",
+    alignItems: "center",
   },
   radioButton_new:{
     flexDirection:'row',lineHeight: 24, justifyContent: 'space-between',
@@ -964,7 +927,7 @@ const styles = StyleSheet.create({
   date_time: {
     color: colors.black,
     fontWeight: "600",
-    fontSize: PixelRatio.roundToNearestPixel(18),
+    fontSize: PixelRatio.roundToNearestPixel(17),
     marginLeft: PixelRatio.roundToNearestPixel(10),
   },
   date_time_data: {
