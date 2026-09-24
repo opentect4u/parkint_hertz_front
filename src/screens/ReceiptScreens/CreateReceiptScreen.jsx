@@ -38,6 +38,8 @@ import QRCode from 'react-native-qrcode-svg';
 import { RadioButton } from "react-native-radio-buttons-group";
 import useGstPriceCalculator from "../../hooks/useGstPriceCalculator";
 import { create } from "react-test-renderer";
+import { useIsFocused } from "@react-navigation/native";
+import { usePrinter } from "../../utils/usePrinter";
 
 
 // import React, { useState, useEffect, useContext } from "react";
@@ -93,6 +95,15 @@ const CreateReceiptScreen = ({ navigation, route }) => {
   const [printBtnActive, setPrintBtnActive] = useState(() => true);
   // Keeps the completed receipt data available when the paper did not print.
   const [lastVehiclePrintData, setLastVehiclePrintData] = useState(null);
+
+  const isFocused = useIsFocused();
+
+  const {
+  printerConnected,
+  checkingPrinter,
+  printerName,
+  verifyPrinterBeforePrint,
+  } = usePrinter();
 
 
   const getCurrentShift = (shifts) => {
@@ -234,8 +245,36 @@ const CreateReceiptScreen = ({ navigation, route }) => {
   }, [])
 
 
+  useEffect(() => {
+  if(isFocused && device_Type_Check == "M"){
+  verifyPrinterBeforePrint();
+  }
+  }, [isFocused]);
+
 
   const handleCreateReceipt = async (isLastVehiclePrint = false) => {
+
+  if(device_Type_Check == "M"){
+  const printerAvailable = await verifyPrinterBeforePrint();
+
+  if (!printerAvailable) {
+  Alert.alert(
+  "Printer Status",
+  "Printer is not connected. Please turn on the printer and try again.",
+  [
+  {
+  text: "OK",
+  // onPress: () => navigation.navigate("PrintMain"),
+  },
+  ]
+  );
+
+  return;
+  }
+
+  }
+
+
     setPrintBtnActive(false)
     setLoading(true);
 
@@ -809,6 +848,27 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         {/* render custom header */}
         <CustomHeader title={"RECEIPT"} navigation={navigation} />
         <View style={{ padding: PixelRatio.roundToNearestPixel(30) }}>
+
+          {device_Type_Check == "M" && (
+              <View style={styles.container__Scanner}>
+              {printerConnected ? (
+              <View style={styles.printerStatus}>
+              <View style={styles.statusDotConnected} />
+              <Text style={styles.printerConnectedText} numberOfLines={1}>
+              Printer Name: {printerName}
+              </Text>
+              </View>
+              ) : (
+              <View style={styles.printerStatus}>
+              <View style={styles.statusDotDisconnected} />
+              <Text style={styles.printerDisconnectedText}>
+              Printer Not Connected
+              </Text>
+              </View>
+              )}
+              </View>
+              )}
+
           {/* current time and date */}
           <View
             style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -977,6 +1037,64 @@ const styles = StyleSheet.create({
     fontSize: PixelRatio.roundToNearestPixel(15),
     marginBottom: normalize(10),
   },
+
+  container__Scanner: {
+    width: "100%",
+    paddingHorizontal: 0,
+    paddingVertical: 8,
+    textAlign:'center'
+  },
+
+  printerStatus: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: 40,
+  paddingHorizontal: 12,
+  paddingVertical: 8,
+  borderRadius: 8,
+  backgroundColor: "#F5F7FA",
+  borderWidth: 1,
+  borderColor: "#E1E5EA",
+},  
+
+  statusDotConnected: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: "#22C55E",
+    marginRight: 8,
+  },
+
+  statusDotDisconnected: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: "#EF4444",
+    marginRight: 8,
+  },
+
+  printerConnectedText: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#222222",
+  textAlign: "center",
+},
+
+  printerDisconnectedText: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#DC2626",
+  textAlign: "center",
+},
+
+  printerCheckingText: {
+  marginLeft: 8,
+  fontSize: 14,
+  color: "#666666",
+  textAlign: "center",
+},
+
 });
 
 const modalStyle = StyleSheet.create({

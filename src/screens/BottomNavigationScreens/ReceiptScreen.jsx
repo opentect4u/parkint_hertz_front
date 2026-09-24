@@ -29,26 +29,8 @@ import { AuthContext } from "../../context/AuthProvider";
 
 import headerImg from "../../resources/logo/sss-logo.png";
 import useDashboard from "../../hooks/api/useDashboard";
-
-
-// import {
-//   ActivityIndicator,
-//   DeviceEventEmitter,
-//   NativeEventEmitter,
-//   PermissionsAndroid,
-//   Platform,
-//   ScrollView,
-//   Text,
-//   ToastAndroid,
-//   View,
-//   Button,
-//   Alert,
-//   StyleSheet,
-// } from "react-native"
-import { BluetoothManager } from "react-native-bluetooth-escpos-printer"
-// import { PERMISSIONS, requestMultiple, RESULTS } from "react-native-permissions"
-
-
+import { connectSelectedPrinter } from "../../utils/printerConnection";
+import { useIsFocused } from "@react-navigation/native";
 
 
 
@@ -81,10 +63,19 @@ export default function ReceiptScreen_Bletooth({ navigation }) {
   const [getAdvAmount, setAdvAmount] = useState();
 
 
+  const isFocused = useIsFocused();
+
+  const device_Type_Check = loginData?.user?.userdata?.msg[0]?.device_type;
+
+  useEffect(() => {
+  if(isFocused && device_Type_Check == "M"){
+  connectSelectedPrinter().catch(error =>
+    console.log("Unable to connect saved printer on receipt screen:", error),
+  );
+  }
+  }, [isFocused]);
 
   // operator info
-
-  
   const todayCollectionArray = [
     { title: "Operator Name", data: userDetails.operator_name },
     { title: "Total Vehicles In", data: totalVehicleIn || 0 },

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, PixelRatio, ToastAndroid, ActivityIndicator, PermissionsAndroid, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, PixelRatio, ToastAndroid, ActivityIndicator, PermissionsAndroid, ScrollView, Alert } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 
 import DeviceInfo from "react-native-device-info";
@@ -20,6 +20,8 @@ import RadioButton from '../../components/RadioButton';
 
 // For Scanner
 import QRCode from 'react-native-qrcode-svg';
+import { useIsFocused } from '@react-navigation/native';
+import { usePrinter } from '../../utils/usePrinter';
 
 
 
@@ -47,6 +49,15 @@ const CreateOutpassScreen = ({ route, navigation }) => {
 
   // For Scanner
   const receiptNoObj = data.find(item => item.label === "RECEIPT NO");
+
+    const isFocused = useIsFocused();
+  
+    const {
+    printerConnected,
+    checkingPrinter,
+    printerName,
+    verifyPrinterBeforePrint,
+    } = usePrinter();
 
 
 
@@ -127,14 +138,33 @@ const CreateOutpassScreen = ({ route, navigation }) => {
 
 
 
-  // console.log("=====================cccccccccccccccccccc======================", totalRate?.vDatainfo)
-  // console.log("xjdfhgiuvhdiuhgiusheirghiuerdrgiierjgki",vDatainfo)
+  useEffect(() => {
+  if(isFocused && device_Type_Check == "M"){
+  verifyPrinterBeforePrint();
+  }
+  }, [isFocused]);
 
   const handlePrintReceipt = async () => {
-    // console.log('upiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiXXX', generalSettings.pay_mode_flag );
-    // setLoading(true);
-    // setisAvailableYet(true);
-    // console.log("totalRate __________", totalRate.paid_amt, totalRate.base_amt);
+    
+    if(device_Type_Check == "M"){
+      const printerAvailable = await verifyPrinterBeforePrint();
+
+      if (!printerAvailable) {
+      Alert.alert(
+      "Printer Status",
+      "Printer is not connected. Please turn on the printer and try again.",
+      [
+      {
+      text: "OK",
+      // onPress: () => navigation.navigate(printScreen),
+      },
+      ]
+      );
+
+      return;
+      }
+    }
+
     let paid_amt = totalRate.paid_amt ? totalRate.paid_amt : totalRate.base_amt;
 
     let GST_Header = "";
@@ -438,17 +468,25 @@ const CreateOutpassScreen = ({ route, navigation }) => {
       <CustomHeader title={'Printer Preview'} />
       <ScrollView>
 
-        {/* <RNCamera ref={ref => {this.camera = ref; }} ></RNCamera> */}
-
-        {/* <View style={styles.container__Scanner}>
-<Text style={styles.numberText__Scanner}>Number: {receiptNoObj.value}</Text>
-      <QRCode
-        value={receiptNoObj.value} // Replace this with your number or data
-        size={200}
-        color="black"
-        backgroundColor="white"
-      />
-    </View> */}
+         {device_Type_Check == "M" && (
+                 <View style={styles.container__Scanner}>
+                 {printerConnected ? (
+                 <View style={styles.printerStatus}>
+                 <View style={styles.statusDotConnected} />
+                 <Text style={styles.printerConnectedText} numberOfLines={1}>
+                 Printer Name: {printerName}
+                 </Text>
+                 </View>
+                 ) : (
+                 <View style={styles.printerStatus}>
+                 <View style={styles.statusDotDisconnected} />
+                 <Text style={styles.printerDisconnectedText}>
+                 Printer Not Connected
+                 </Text>
+                 </View>
+                 )}
+                 </View>
+                 )}
 
         {/* render printer preview and action buttons */}
         <View style={{ padding: PixelRatio.roundToNearestPixel(15) }}>
@@ -545,5 +583,63 @@ const styles = StyleSheet.create({
     // fontWeight: PixelRatio.roundToNearestPixel(500),
     fontSize: PixelRatio.roundToNearestPixel(18),
   },
+
+  container__Scanner: {
+    width: "100%",
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    textAlign:'center'
+  },
+
+  printerStatus: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: 40,
+  paddingHorizontal: 12,
+  paddingVertical: 8,
+  borderRadius: 8,
+  backgroundColor: "#F5F7FA",
+  borderWidth: 1,
+  borderColor: "#E1E5EA",
+},  
+
+  statusDotConnected: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: "#22C55E",
+    marginRight: 8,
+  },
+
+  statusDotDisconnected: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: "#EF4444",
+    marginRight: 8,
+  },
+
+  printerConnectedText: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#222222",
+  textAlign: "center",
+  },
+
+  printerDisconnectedText: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: "#DC2626",
+  textAlign: "center",
+  },
+
+  printerCheckingText: {
+  marginLeft: 8,
+  fontSize: 14,
+  color: "#666666",
+  textAlign: "center",
+},
+
 });
 
