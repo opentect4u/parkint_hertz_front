@@ -254,6 +254,9 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
   const handleCreateReceipt = async (isLastVehiclePrint = false) => {
 
+
+    
+
   if(device_Type_Check == "M"){
   const printerAvailable = await verifyPrinterBeforePrint();
 
@@ -297,15 +300,15 @@ const CreateReceiptScreen = ({ navigation, route }) => {
       return;
     }
 
-    if (isLastVehiclePrint && !lastVehiclePrintData) {
-      setLoading(false);
-      setPrintBtnActive(true);
-      return ToastAndroid.showWithGravity(
-        "No previous vehicle receipt is available to print.",
-        ToastAndroid.SHORT,
-        ToastAndroid.CENTER,
-      );
-    }
+    // if (isLastVehiclePrint && !lastVehiclePrintData) {
+    //   setLoading(false);
+    //   setPrintBtnActive(true);
+    //   return ToastAndroid.showWithGravity(
+    //     "No previous vehicle receipt is available to print.",
+    //     ToastAndroid.SHORT,
+    //     ToastAndroid.CENTER,
+    //   );
+    // }
 
     if (!isLastVehiclePrint && !vehicleNumber) {
       setLoading(false);
@@ -385,13 +388,6 @@ const CreateReceiptScreen = ({ navigation, route }) => {
           printTime: currentTime.toISOString(),
         });
       }
-
-      // setLoading(false);
-      // setPrintBtnActive(true)
-
-      // console.log('checkkkkkkkkkkkkkkkkkkkk', loginData?.user?.userdata?.msg[0], 'checkkkkkkkkkkkkkkkkkkkk');
-      // return;
-      
 
       /// Utsab M H
          if (getBlePermission && device_Type_Check == "M") {
@@ -553,9 +549,16 @@ const CreateReceiptScreen = ({ navigation, route }) => {
         BluetoothEscposPrinter.ALIGN.CENTER,
         BluetoothEscposPrinter.ALIGN.RIGHT,
       ],
-      ["YS SERVICE CHARGES", ":", `${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}`],
+      ["YS SERVICE CHARGES (including 18% GST)", ":", `${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}`],
       {},
       )
+
+      // if (generalSettings.gst_flag == "Y") {
+      //   await BluetoothEscposPrinter.printText(`GST No.: ${gstList.gst_number}\n`, { align: "center" });
+        
+        
+      //   // gstSettings[0]?.cgst + gstSettings[0]?.sgst
+      // }
 
       
 
@@ -715,7 +718,7 @@ const CreateReceiptScreen = ({ navigation, route }) => {
 
         `[L]<font size='normal'>VEHICLE TYPE. : [R] ${type}</font>\n` +
         `[L]<font size='normal'>VEHICLE NO : [R] ${vehicleNumberToPrint}</font>\n` +
-        `[L]<font size='normal'>YS SERVICE CHARGES : [R] ${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}</font>\n\n` +
+        `[L]<font size='normal'>YS SERVICE CHARGES\n(including 18% GST) : [R] ${(Number(gstPrice?.totalPrice) + Number(gstList?.other_charges)).toFixed(2)}</font>\n\n` +
         
         
         `${qrcode}` +
